@@ -1,3 +1,4 @@
+// git_save_test_ver2
 var astar = {
   init: function(grid) {
     for(var x = 0; x < grid.length; x++) {
