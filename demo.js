@@ -42,7 +42,7 @@ var css = { start: "start", finish: "finish", wall: "wall", active: "active" };
 function GraphSearch($graph, options, implementation) {
     this.$graph = $graph;
     this.search = implementation;
-    this.opts = $.extend({wallFrequency:0.1, debug:true, gridSize:20}, options);
+    this.opts = $.extend({wallFrequency:0.2, debug:false, gridSize:10}, options);//격자, 벽 그리는 부분
     this.initialize();
 }
 GraphSearch.prototype.setOption = function(opt) {
@@ -107,13 +107,13 @@ GraphSearch.prototype.cellClicked = function($end) {
 
     var end = this.nodeFromElement($end);
 
-    if($end.hasClass(css.wall) || $end.hasClass(css.start)) {
+    if($end.hasClass(css.wall) || $end.hasClass(css.start)) { //클릭한 지점이 벽이나 시작점이면 리턴
         return;
     }
 
-    this.$cells.removeClass(css.finish);
-    $end.addClass("finish");
-    var $start = this.$cells.filter("." + css.start),
+    this.$cells.removeClass(css.finish);  //종료지점 삭제
+    $end.addClass("finish"); //새로운 종료시점 생성
+    var $start = this.$cells.filter("." + css.start), //?
         start = this.nodeFromElement($start);
 
     var sTime = performance ? performance.now() : new Date().getTime();
