@@ -7,7 +7,9 @@ var min; //"max";
 var pox, poy, pov;
 var temp;
 var Path;
-var cnt = 1;
+var icount = 0;
+var mcount = 0;
+
 ///////////////////////////// html 값 가져오기 //////////////////////////
 var map_x;// = document.getElementById('Map_X').value;
 var map_y;// = document.getElementById('Map_Y').value;
@@ -21,6 +23,8 @@ var start_y;// = document.getElementById('Start_Y').value;
 var wall_complex;
 /////////////////////////////////////////////////////////////////////////
 var arry;
+var point_x;
+var point_y;
 ////////////////////////////// html 이벤트 처리 ///////////////////////
 //$('MapButton').click(function () {
 //    map_x = $('#Map_X');
@@ -56,7 +60,7 @@ button_map.addEventListener('click', function () {
     create_array();
     Path = new search();
     Path.init();
-    Path.run();
+    Path.move();
 
 
     //Path.print();
@@ -86,6 +90,9 @@ $('#MapCreate').click(function () {
                 case "End":
                     contents += "<td class='td_end'>" + "</td>";
                     break;
+                case "search":
+                    contents += "<td class='td_search'>" + "</td>";
+                    break;
                 default:
                     contents += "<td class='td_de'>" + "</td>";
                     break;
@@ -100,40 +107,14 @@ $('#MapCreate').click(function () {
 });
 /////////////////////////////////////////////////////////////////////////
 function create_array() {
+
     for (var i = 0; i < map_x; i++) {
         arry[i] = [];
     }
-} //맵 배열
+}
+//맵 배열
 ////////////// 맵을 2차원 배열로 만듬 ////////////
-
-
-
 search = function () {
-    search.prototype.run = function () {
-        //while (true) {
-        //    if (pathlist_x == end_x) {
-        //        if (pathlist_y == end_y) {
-        //            break;
-        //        }
-        //    }
-        //    else {
-        //        Path.move();
-        //    }
-        //}
-        for (var i = 0; i < arry.length; i++) {
-            for (var j = 0; j < arry[i].length; j++) {
-                if (pathlist_x == end_x) {
-                    if (pathlist_y == end_y) {
-                        break;
-                    }
-                }
-                else {
-                    Path.move();
-                }
-            }
-        }
-
-    };
     /////////////////// 맵 초기화 /////////////////////////////
     search.prototype.init = function () {
         for (var i = 0; i < map_x; i++) {
@@ -156,18 +137,19 @@ search = function () {
         }
         /////////////// 시작점 설정 /////////////////////////////
         arry[start_x][start_y] = 'start';
+        arry[end_x][end_y] = 'End';
         openlist_x.push(start_x);
         openlist_y.push(start_y);
-        //openlist_v.push();
-        //arry[end_x][end_y] = 'End';
-        //console.log("셋팅" + openlist_x);
-
     };
 
     function insert(result, x, y) {
-       // console.log(openlist_x.length);
-        
-        for (var is = 0; is < cnt; is++) {
+        // console.log(openlist_x.length);
+        if (x == end_x) {
+            if (y == end_y) {
+                arry[x][y] = 'End';
+            }
+        }
+        for (var is = 0; is < openlist_x.length; is++) {
             if (openlist_x[is] == x) {
                 if (openlist_y[is] == y) {
                     //if(openlist_v[is] )
@@ -178,6 +160,7 @@ search = function () {
                     openlist_v.unshift(result);
                     openlist_x.unshift(x);
                     openlist_y.unshift(y);
+                    
                     break;
                 }
             }
@@ -185,14 +168,25 @@ search = function () {
                 openlist_v.unshift(result);
                 openlist_x.unshift(x);
                 openlist_y.unshift(y);
+                
                 break;
-            }  
+            }
         }
-        cnt += 1;
+        icount++;
+        //cnt += 1;
+        //console.log('저장된 값 : ' +openlist_x);
+        if (x == end_x) {
+            if (y == end_y) {
+                arry[x][y] = "End";
+            }
+        }
+        else {
+            arry[x][y] = 'search';
+        }
     }
 
     // 최소값을 찾아내기 위함
-    function minimum() {
+    function sort() {
         // console.log(" 미니 접속 openlist_v 길이 : " + openlist_v.length);
         //console.log("미니 오픈리스트 : " + openlist_v);
         //min = openlist_v[0];
@@ -203,8 +197,6 @@ search = function () {
                     temp = openlist_v[j];
                     openlist_v[j] = openlist_v[j + 1];
                     openlist_v[j + 1] = temp;
-
-
                     /////////////////////////////////////////////////  x좌표
                     temp = openlist_x[j];
                     openlist_x[j] = openlist_x[j + 1];
@@ -221,122 +213,178 @@ search = function () {
         //min = openlist_v[1];
         pathlist_x.unshift(openlist_x[0]);
         pathlist_y.unshift(openlist_y[0]);
+       // arry[openlist_x[0]][openlist_y[0]] = 'path';
     }
     function movement() {
         console.log("이동 좌표 : " + openlist_x[0] + " , " + openlist_y[0]);
-
+        sort();
         pov = openlist_v.shift();
         pox = openlist_x.shift();
         poy = openlist_y.shift();
+        arry[pox][poy] = "path";
+        //arry[pox][poy] = 'path';
+        //if (arry[pox][poy] === 'End') {
+        //    return false;
+        //    //return;
 
-
-
-        if (arry[pox][poy] === 'End') {
-            return false;
-            //return;
-
-        }
-        else if (arry[pox][poy] === 'path') {
-            arry[pox][poy] = 0;
-        }
-        else {
-            arry[pox][poy] = 'start';
-        }
+        //}
+        //else if (arry[pox][poy] === 'path') {
+        //    arry[pox][poy] = 0;
+        //}
+        //else {
+        //    arry[pox][poy] = 'start';
+        //}
+        mcount++;
 
     }
-
-
-
-
     /////////////////////// 이동함수 ///////////////////////
     search.prototype.move = function () {
         var result;
-        for (var idx = 0; idx < arry.length; idx++) {
-            for (var jdx = 0; jdx < arry[idx].length; jdx++) {
-                if (arry[idx][jdx] === 'start') { //arry[i][jdx] 가 1이면 8방위에 대해서 값 계산
-                    console.log("현재 좌표 : " + idx + " , " + jdx);
-                    // 값이 start이였던 곳을 path로 바꿈 (지나온 길을 의미)
-                    arry[idx][jdx] = 'path';
-                    //console.log(end_x + "," + end_y + "end");
-                    if (idx == end_x) {
-                        if (jdx == end_y) {
-                            arry[idx][jdx] = 'End';
-                            break;
-                        }
+        var idx = +start_x;
+        var jdx = +start_y;
+        var count = 1;
+        while (true) {
+            point_x = idx;
+            point_y = jdx;
+            //arry[point_x][point_y] = 'path';
+            if (arry[point_x][point_y] !== 'End') {
+                if ((point_x + 1) <= (map_x - 1)) {
+                    if (arry[point_x + 1][point_y] != 'wall' && arry[point_x + 1][point_y] != 'path') {
+                        result = Math.abs(point_x + 1 - start_x) + Math.abs(point_y - start_y) + Math.abs(end_x - (point_x + 1)) + Math.abs(end_y - (point_y)); //동
+                        arry[point_x + 1][point_y] = result;
+                        insert(result, (point_x + 1), point_y);
+                    }
+                    idx = point_x++;
+                }
+                if ((point_y + 1) <= (map_y - 1)) {
+                    if (arry[point_x][point_y + 1] !== 'wall' && arry[point_x][point_y + 1] !== 'path') {
+                        result = Math.abs(point_x - start_x) + Math.abs(point_y + 1 - start_y) + Math.abs(end_x - point_x) + Math.abs(end_y - (point_y + 1)); //남
+                        arry[point_x][point_y + 1] = result;
+                        insert(result, point_x, (point_y + 1));
+                    }
+                    jdx = point_y++;
+                }
+                if ((point_x - 1) >= 0) {
+                    if (arry[point_x - 1][point_y] !== 'wall' && arry[point_x - 1][point_y] !== 'path') {
+                        result = Math.abs(point_x - 1 + start_x) + Math.abs(point_y - start_y) + Math.abs((end_x - point_x) - 1) + Math.abs(end_y - point_y); //서
+                        arry[point_x - 1][point_y] = result;
+                        insert(result, (point_x - 1), point_y);
+                    }
+                    idx = point_x--;
+                }
 
+                if ((point_y - 1) >= 0) {
+                    if (arry[point_x][point_y - 1] !== 'wall' && arry[point_x][point_y - 1] !== 'path') {
+                        result = Math.abs(point_x - start_x) + Math.abs(point_y - 1 - start_y) + Math.abs(end_x - point_x) + Math.abs(end_y - (point_y - 1)); //북
+                        arry[point_x][point_y - 1] = result;
+                        insert(result, point_x, (point_y - 1));
                     }
+                    jdx = point_y--;
+                }
+                
+            }
+            
+            if (idx == end_x) {
+                if (jdx == end_y) {
+                    break;
+                }
+            }
+            movement();  // openlist의 0번째 값을 꺼내서 그곳으로 이동할 준비를 함.
+            count++;
+            //if (count == 10) {
+            //    console.log(count);
+            //    console.log(icount);
+            //    console.log(mcount);
+            //    break;
+            //}
 
-                    // 만약 2이면 넘어감 (2는 벽)
-                    if ((idx + 1) <= (map_x - 1)) {
-                        if (arry[idx + 1][jdx] !== 'wall' && arry[idx + 1][jdx] !== 'path') {
-                            result = Math.abs(idx + 1 - idx) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - jdx); //동
-                            arry[idx + 1][jdx] = result;
-                            insert(result, (idx + 1), jdx);
-                        }
-                    }
-                    if ((jdx + 1) <= (map_y - 1)) {
-                        if (arry[idx][jdx + 1] !== 'wall' && arry[idx][jdx + 1] !== 'path') {
-                            result = Math.abs((jdx + 1) - jdx) + Math.abs(end_x - idx) + Math.abs(end_y - (jdx + 1)); //남
-                            arry[idx][jdx + 1] = result;
-                            insert(result, idx, (jdx + 1));
-                        }
-                    }
-                    if ((idx - 1) >= 0) {
-                        if (arry[idx - 1][jdx] !== 'wall' && arry[idx - 1][jdx] !== 'path') {
-                            result = Math.abs((idx - 1) - idx) + Math.abs((end_x - idx) - 1) + Math.abs(end_y - jdx); //서
-                            arry[idx - 1][jdx] = result;
-                            insert(result, (idx - 1), jdx);
-                        }
-                    }
 
-                    if ((jdx - 1) >= 0) {
-                        if (arry[idx][jdx - 1] !== 'wall' && arry[idx][jdx - 1] !== 'path') {
-                            result = Math.abs((jdx - 1) - jdx) + Math.abs(end_x - idx) + Math.abs(end_y - (jdx - 1)); //북
-                            arry[idx][jdx - 1] = result;
-                            insert(result, idx, (jdx - 1));
-                        }
-                    }
-                    //////////////////////////////// 대 각 선 //////////////////////////////////////////
-                    //서남
-                    if ((idx - 1) >= 0 && (jdx + 1) <= (map_y - 1)) {
-                        if (arry[idx - 1][jdx + 1] !== 'wall' && arry[idx - 1][jdx + 1] !== 'path') {
-                            result = (Math.sqrt(Math.pow(((idx - 1) - idx), 2) + Math.pow(((jdx + 1) - jdx), 2))) + Math.abs(end_x - (idx - 1)) + Math.abs(end_y - (jdx + 1));
-                            arry[idx - 1][jdx + 1] = result;
-                            insert(result, (idx - 1), (jdx + 1));
-                        }
-                    }
-                    //서북
-                    if ((idx - 1) >= 0 && (jdx - 1) >= 0) {
-                        if (arry[idx - 1][jdx - 1] !== 'wall' && arry[idx - 1][jdx - 1] !== 'path') {
-                            result = (Math.sqrt(Math.pow(((idx - 1) - idx), 2) + Math.pow(((jdx - 1) - jdx), 2))) + Math.abs(end_x - (idx - 1)) + Math.abs(end_y - (jdx - 1));
-                            arry[idx - 1][jdx - 1] = result;
-                            insert(result, (idx - 1), (jdx - 1));
-                        }
-                    }
-                    //동북
-                    if ((idx + 1) <= (map_x - 1) && (jdx - 1) >= 0) {
-                        if (arry[idx + 1][jdx - 1] !== 'wall' && arry[idx + 1][jdx - 1] !== 'path') {
-                            result = (Math.sqrt(Math.pow(((idx + 1) - idx), 2) + Math.pow(((jdx - 1) - jdx), 2))) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - (jdx - 1));
-                            arry[idx + 1][jdx - 1] = result;
-                            insert(result, (idx + 1), (jdx - 1));
-                        }
-                    }
-                    // 동남
-                    if ((idx + 1) <= (map_x - 1) && (jdx + 1) <= (map_y - 1)) {
-                        if (arry[idx + 1][jdx + 1] !== 'wall' && arry[idx + 1][jdx + 1] !== 'path') {
-                            result = (Math.sqrt(Math.pow(((idx + 1) - idx), 2) + Math.pow(((jdx + 1) - jdx), 2))) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - (jdx + 1));
-                            arry[idx + 1][jdx + 1] = result;
-                            insert(result, (idx + 1), (jdx + 1));
+        }
+        //for (var idx = 0; idx < arry.length; idx++) {
+        //    for (var jdx = 0; jdx < arry[idx].length; jdx++) {
+        //        if (arry[idx][jdx] === 'start') { //arry[i][jdx] 가 1이면 8방위에 대해서 값 계산
+        //            console.log("현재 좌표 : " + idx + " , " + jdx);
+        //            // 값이 start이였던 곳을 path로 바꿈 (지나온 길을 의미)
+        //            arry[idx][jdx] = 'path';
+        //            //console.log(end_x + "," + end_y + "end");
+        //            if (idx == end_x) {
+        //                if (jdx == end_y) {
+        //                    arry[idx][jdx] = 'End';
+        //                    break;
+        //                }
 
-                        }
-                    }
-                    //console.log(arry[idx][jdx]);
-                    minimum();   ///최소값 을 openlist들의 0번째 인덱스로 넣음
-                    movement();  // openlist의 0번째 값을 꺼내서 그곳으로 이동할 준비를 함.
-                }//if문 종료 ( 1인 값 찾기)
+        //            }
 
-            } //for문 종료
-        } //for문 종료
+        //            // 만약 2이면 넘어감 (2는 벽)
+        //            if ((idx + 1) <= (map_x - 1)) {
+        //                if (arry[idx + 1][jdx] !== 'wall' && arry[idx + 1][jdx] !== 'path') {
+        //                    result = Math.abs(idx +1 - start_x) + Math.abs(jdx-start_y) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - jdx); //동
+        //                    arry[idx + 1][jdx] = result;
+        //                    insert(result, (idx + 1), jdx);
+        //                }
+        //            }
+        //            if ((jdx + 1) <= (map_y - 1)) {
+        //                if (arry[idx][jdx + 1] !== 'wall' && arry[idx][jdx + 1] !== 'path') {
+        //                    result = Math.abs(idx - start_x) + Math.abs(jdx + 1 - start_y) + Math.abs(end_x - idx) + Math.abs(end_y - (jdx + 1)); //남
+        //                    arry[idx][jdx + 1] = result;
+        //                    insert(result, idx, (jdx + 1));
+        //                }
+        //            }
+        //            if ((idx - 1) >= 0) {
+        //                if (arry[idx - 1][jdx] !== 'wall' && arry[idx - 1][jdx] !== 'path') {
+        //                    result = Math.abs(idx - 1 + start_x) + Math.abs(jdx - start_y) +Math.abs((end_x - idx) - 1) + Math.abs(end_y - jdx); //서
+        //                    arry[idx - 1][jdx] = result;
+        //                    insert(result, (idx - 1), jdx);
+        //                }
+        //            }
+
+        //            if ((jdx - 1) >= 0) {
+        //                if (arry[idx][jdx - 1] !== 'wall' && arry[idx][jdx - 1] !== 'path') {
+        //                    result = Math.abs(idx-start_x) + Math.abs(jdx -1 - start_y) + Math.abs(end_x - idx) + Math.abs(end_y - (jdx - 1)); //북
+        //                    arry[idx][jdx - 1] = result;
+        //                    insert(result, idx, (jdx - 1));
+        //                }
+        //            }
+        ////////////////////////////////// 대 각 선 //////////////////////////////////////////
+        //////서남
+        //if ((idx - 1) >= 0 && (jdx + 1) <= (map_y - 1)) {
+        //    if (arry[idx - 1][jdx + 1] !== 'wall' && arry[idx - 1][jdx + 1] !== 'path') {
+        //        result = (Math.sqrt(Math.pow(((idx - 1) - start_x), 2) + Math.pow(((jdx + 1) - start_y), 2))) + Math.abs(end_x - (idx - 1)) + Math.abs(end_y - (jdx + 1));
+        //        arry[idx - 1][jdx + 1] = result;
+        //        insert(result, (idx - 1), (jdx + 1));
+        //    }
+        //}
+        ////서북
+        //if ((idx - 1) >= 0 && (jdx - 1) >= 0) {
+        //    if (arry[idx - 1][jdx - 1] !== 'wall' && arry[idx - 1][jdx - 1] !== 'path') {
+        //        result = (Math.sqrt(Math.pow(((idx - 1) - start_x), 2) + Math.pow(((jdx - 1) - start_y), 2))) + Math.abs(end_x - (idx - 1)) + Math.abs(end_y - (jdx - 1));
+        //        arry[idx - 1][jdx - 1] = result;
+        //        insert(result, (idx - 1), (jdx - 1));
+        //    }
+        //}
+        ////동북
+        //if ((idx + 1) <= (map_x - 1) && (jdx - 1) >= 0) {
+        //    if (arry[idx + 1][jdx - 1] !== 'wall' && arry[idx + 1][jdx - 1] !== 'path') {
+        //        result = (Math.sqrt(Math.pow(((idx + 1) - start_x), 2) + Math.pow(((jdx - 1) - start_y), 2))) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - (jdx - 1));
+        //        arry[idx + 1][jdx - 1] = result;
+        //        insert(result, (idx + 1), (jdx - 1));
+        //    }
+        //}
+        //// 동남
+        //if ((idx + 1) <= (map_x - 1) && (jdx + 1) <= (map_y - 1)) {
+        //    if (arry[idx + 1][jdx + 1] !== 'wall' && arry[idx + 1][jdx + 1] !== 'path') {
+        //        result = (Math.sqrt(Math.pow(((idx + 1) - start_x), 2) + Math.pow(((jdx + 1) - start_y), 2))) + Math.abs(end_x - (idx + 1)) + Math.abs(end_y - (jdx + 1));
+        //        arry[idx + 1][jdx + 1] = result;
+        //        insert(result, (idx + 1), (jdx + 1));
+        //   }
+        //}
+        //console.log(arry[idx][jdx]);
+        //            minimum();   ///최소값 을 openlist들의 0번째 인덱스로 넣음
+        //            movement();  // openlist의 0번째 값을 꺼내서 그곳으로 이동할 준비를 함.
+        //        }//if문 종료 ( 1인 값 찾기)
+
+        //    } //for문 종료
+        //} //for문 종료
 
     }
 };
